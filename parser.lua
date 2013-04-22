@@ -13,6 +13,24 @@ function infix_expr (op, left, right)
    return {type="infix", operator=op, left=left, right=right}
 end
 
+function dump_ast(tree)
+   function dump(tree,level)
+      if tree.type == "name" then
+         io.write(string.rep(" ",level),"name: ",tree.value,"\n")
+      elseif tree.type == "prefix" then
+         io.write(string.rep(" ",level),"prefix: ", tree.operator, "\n")
+         dump(tree.argument, level+2)
+      elseif tree.type == "infix" then
+         io.write(string.rep(" ",level),"infix: ", tree.operator, "\n")
+         dump(tree.left, level+2)
+         dump(tree.right, level+2)
+      else
+         error("not an ast value")
+      end
+   end
+   dump(tree,0)
+end
+
 -- prefix parsing
 prefix_parsers = {}
 
