@@ -1,0 +1,5 @@
+* Lua Experiments
+Just a bunch of code, to play around with lua.
+
+Use whatever you want under the terms of the modified BSD license,
+should you feel it useful.
