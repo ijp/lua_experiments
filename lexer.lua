@@ -24,7 +24,7 @@ function make_lexer(str)
          return name(string.sub(str,start,finish))
       end
 
-      start,finish = string.find(str,"=>", i)
+      start,finish = string.find(str,"^=>", i)
       if start then
          i = finish + 1
          return punctuation("=>")
