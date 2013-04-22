@@ -6,7 +6,7 @@ function name(str)
 end
 
 function punctuation(p)
-   return { type="punctuation", value=p }
+   return { type=p, value=p }
 end
 
 -- dumb handwritten lexer
