@@ -33,13 +33,13 @@ function make_lexer(str)
       start,finish = string.find(str,"^<=>", i)
       if start then
          i = finish + 1
-         return punctuation("^<=>")
+         return punctuation("<=>")
       end
 
       start,finish = string.find(str,"^&", i)
       if start then
          i = finish + 1
-         return punctuation("^&")
+         return punctuation("&")
       end
 
       start,finish = string.find(str,"^|", i)
