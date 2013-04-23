@@ -74,10 +74,20 @@ function binop(name, prec)      -- useful for simple parsers
    precedence[name] = prec
 end
 
-binop("&", 50)
-binop("|", 40)
-binop("=>", 30)
-binop("<=>", 20)
+function binopr(name, prec)
+   local function parser (left, operator)
+      -- associates to the right
+      local right = parse_expression(prec-1)
+      return infix_expr(name, left, right)
+   end
+   infix_parsers[name] = parser
+   precedence[name] = prec
+end
+
+binopr("&", 50)
+binopr("|", 40)
+binopr("=>", 30)
+binopr("<=>", 20)
 
 -- the parser itself
 function expect(type)
