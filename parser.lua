@@ -31,44 +31,54 @@ function dump_ast(tree)
    dump(tree,0)
 end
 
+-- precedences
+precedence = {}
+prec_min = 0
+
 -- prefix parsing
 prefix_parsers = {}
 
-function prefix(name)           -- useful for "simple" parsers
+function prefix(name,prec)      -- useful for "simple" parsers
    local function make_prefix_expr (name_token)
-      -- doesn't currently parse "right", since we don't have precedence yet
-      local next = parse_expression()
+      local next = parse_expression(prec)
       return prefix_expr(name, next)
    end
    prefix_parsers[name] = make_prefix_expr
+   precedence[name] = prec
 end
 
 prefix_parsers["name"] = name_expr
+precedence["name"] = 0 -- what is the correct precedence for these?
 
 prefix_parsers["("] =
    function (tok)
-      local expr = parse_expression()
+      local expr = parse_expression(prec_min)
       expect(")")
       return expr
    end
+precedence["("] = 70
+precedence[")"] = 70
 
-prefix("~")
+prefix("~",60)
 
 -- infix parsing
 infix_parsers = {}
 
-function binop(name)            -- useful for simple parsers
+function binop(name, prec)      -- useful for simple parsers
    local function parser (left, operator)
-      local right = parse_expression()
+      -- associates to the left
+      local right = parse_expression(prec)
       return infix_expr(name, left, right)
    end
    infix_parsers[name] = parser
+   precedence[name] = prec
 end
 
-binop("&")
-binop("|")
-binop("=>")
-binop("<=>")
+binop("&", 50)
+binop("|", 40)
+binop("=>", 30)
+binop("<=>", 20)
+
 -- the parser itself
 function expect(type)
    local token = advance()
@@ -82,11 +92,14 @@ function expect(type)
 end
 
 -- advance = make_lexer("a & b")
+-- advance = make_lexer("a & b & c")
 -- advance = make_lexer("a & b <=> b")
 -- advance = make_lexer("(a)")
+-- advance = make_lexer("a & b | c & d")
+-- advance = make_lexer("a & (b | c) & d")
 -- advance = make_lexer("(~c => ~~d)")
 -- advance = make_lexer("a & b <=> c | d | e")
-advance = make_lexer("a & b <=> b | (~c => ~~d) | e")
+-- advance = make_lexer("a & b <=> b | (~c => ~~d) | e")
 
 function retreat(val)
    local old = advance
@@ -97,7 +110,7 @@ function retreat(val)
    advance = next
 end
 
-function parse_expression()
+function parse_expression(prec)
    local token = advance()
    local prefix = prefix_parsers[token.type]
 
@@ -108,17 +121,24 @@ function parse_expression()
    local left = prefix(token)
    local next = advance()
 
-   if not next then
-      return left
+   while (next and prec < precedence[next.type]) do
+      local infix = infix_parsers[next.type]
+
+      if not infix then         -- necessary?
+         retreat(next)
+         return left
+      end
+      
+      left = infix(left,next)
+      next = advance()
    end
 
-   local infix = infix_parsers[next.type]
-
-   if not infix then
+   if next then         -- necessary?
       retreat(next)
-      return left
    end
-   
-   return infix(left,next)
+   return left
+end
 
+function parse()
+   return parse_expression(prec_min)
 end
