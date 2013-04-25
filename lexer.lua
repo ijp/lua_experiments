@@ -91,7 +91,7 @@ function lex_string(str)
    return result
 end
 
-function run_tests(table)
+function run_tests()
    local function different(array1, array2)
       for i,v in ipairs(array2) do
          if array1[1].value ~= v then
@@ -100,7 +100,7 @@ function run_tests(table)
       end
       return true
    end
-   for string, expected in pairs(table) do
+   for string, expected in pairs(tests) do
       if different(lex_string(string), expected) then
          error("failed to lex:"..str)
       end
