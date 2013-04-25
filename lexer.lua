@@ -45,19 +45,41 @@ function build_lexer(rules, eof, skip_unhandled)
    return make_lexer
 end
 
-rules = {
-   pair("^[%l%u]+", name),
-   pair("^=>", punctuation),
-   pair("^<=>", punctuation),
-   pair("^&", punctuation),
-   pair("^|", punctuation),
-   pair("^~", punctuation),
-   pair("^%(", punctuation),
-   pair("^%)", punctuation),
-   pair("^=>", punctuation)
-}
 
-make_lexer = build_lexer(rules, nil, true)
+function new ()
+   builder = {
+      eofval = nil,
+      skip = true,
+      rules = {}
+   }
+   
+   function builder:rule(pattern, func)
+      table.insert(builder.rules, pair(pattern, func))
+   end
+   
+   function builder:eof(val)
+      builder.eofval = val
+   end
+
+   function builder:build()
+      return build_lexer(builder.rules, builder.eofval, builder.skip)
+   end
+   
+   return builder
+end
+
+lb = new()
+lb:rule("^[%l%u]+", name)
+lb:rule("^=>", punctuation)
+lb:rule("^<=>", punctuation)
+lb:rule("^&", punctuation)
+lb:rule("^|", punctuation)
+lb:rule("^~", punctuation)
+lb:rule("^%(", punctuation)
+lb:rule("^%)", punctuation)
+lb:rule("^=>", punctuation)
+
+make_lexer = lb:build()
 
 function lex_string(str)
    local result = {}
