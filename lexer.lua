@@ -14,7 +14,7 @@ function punctuation(p)
 end
 
 function build_lexer(rules, eof, skip_unhandled)
-   function make_lexer(str)
+   local function make_lexer(str)
       local i = 1
       local l = string.len(str)
       local function next()
@@ -47,24 +47,24 @@ end
 
 
 function new ()
-   builder = {
+   local builder = {
       eofval = nil,
       skip = true,
       rules = {}
    }
    
-   function builder:rule(pattern, func)
-      table.insert(builder.rules, pair(pattern, func))
-   end
+   builder.rule = function (_, pattern, func)
+                     table.insert(builder.rules, pair(pattern, func))
+                  end
    
-   function builder:eof(val)
-      builder.eofval = val
-   end
+   builder.eof = function (_, val)
+                    builder.eofval = val
+                 end
 
-   function builder:build()
-      return build_lexer(builder.rules, builder.eofval, builder.skip)
-   end
-   
+   builder.build = function (this)
+                      return build_lexer(builder.rules, builder.eofval, builder.skip)
+                   end
+
    return builder
 end
 
