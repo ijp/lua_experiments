@@ -91,6 +91,14 @@ local function lex_string(str)
    return result
 end
 
+local tests = {}
+tests["just a bunch of words"] = {"just","a","bunch","of","words"}
+tests["just a bunch of words & the occasional &"] ={"just","a","bunch","of","words",
+                                                    "&", "the", "occasional", "&"}
+tests["lots    of\t\t\n whitespace   \n\n\n\n "] ={"lots","of","whitespace"}
+tests["(&~|))&&~|=>(<=>|&|~=>"]={"(","&","~","|",")",")","&","&","~","|","=>","(",
+                                 "<=>","|","&","|","~","=>"}
+
 local function run_tests()
    local function different(array1, array2)
       for i,v in ipairs(array2) do
@@ -108,13 +116,5 @@ local function run_tests()
    print("yep, all fine")
    return true
 end
-
-local tests = {}
-tests["just a bunch of words"] = {"just","a","bunch","of","words"}
-tests["just a bunch of words & the occasional &"] ={"just","a","bunch","of","words",
-                                                    "&", "the", "occasional", "&"}
-tests["lots    of\t\t\n whitespace   \n\n\n\n "] ={"lots","of","whitespace"}
-tests["(&~|))&&~|=>(<=>|&|~=>"]={"(","&","~","|",")",")","&","&","~","|","=>","(",
-                                 "<=>","|","&","|","~","=>"}
 
 return {new=new, make_lexer=make_lexer, run_tests=run_tests}
