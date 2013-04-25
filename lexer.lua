@@ -1,6 +1,10 @@
 -- A simple boolean expression parser, written to test out top-down
 -- operator precedence parsing
 
+function pair(a,d)
+   return {pattern=a, func=d}
+end
+
 function name(str)
    return { type="name", value=str }
 end
@@ -9,75 +13,51 @@ function punctuation(p)
    return { type=p, value=p }
 end
 
--- dumb handwritten lexer
-function make_lexer(str)
-   local i = 1
-   local l = string.len(str)
-   local function next()
-      if i > l then
-         return nil
-      end
-      
-      local start,finish = string.find(str, "^[%l%u]+", i) -- use match?
-      if start then
-         i = finish + 1
-         return name(string.sub(str,start,finish))
-      end
+function build_lexer(rules, eof, skip_unhandled)
+   function make_lexer(str)
+      local i = 1
+      local l = string.len(str)
+      local function next()
+         if i > l then
+            return eof
+         end
 
-      start,finish = string.find(str,"^=>", i)
-      if start then
-         i = finish + 1
-         return punctuation("=>")
-      end
-      
-      start,finish = string.find(str,"^<=>", i)
-      if start then
-         i = finish + 1
-         return punctuation("<=>")
-      end
+         for _, pair in ipairs(rules) do
+            local start,finish = string.find(str,pair.pattern, i)
+            if start then
+               i = finish + 1
+               return pair.func(string.sub(str,start,finish))
+            end
+         end
 
-      start,finish = string.find(str,"^&", i)
-      if start then
-         i = finish + 1
-         return punctuation("&")
+         -- it would be nicer if I added rules for skipping, so that I
+         -- could handle e.g. a chunk of whitespace at once
+         if skip_unhandled then
+            i = i+1
+            return next()
+         else       
+            error("can't lex:"..string.sub(str,i,l))
+         end
       end
-
-      start,finish = string.find(str,"^|", i)
-      if start then
-         i = finish + 1
-         return punctuation("|")
-      end
-
-      start,finish = string.find(str,"^~", i)
-      if start then
-         i = finish + 1
-         return punctuation("~")
-      end
-
-      start,finish = string.find(str,"^%(", i)
-      if start then
-         i = finish + 1
-         return punctuation("(")
-      end
-
-      start,finish = string.find(str,"^%)", i)
-      if start then
-         i = finish + 1
-         return punctuation(")")
-      end
-      
-      -- whitespace is tested last so I can just tailcall next.
-      start,finish = string.find(str,"^%s+", i)
-      if start then
-         i = finish + 1
-         return next()
-      else
-         error("can't lex:"..string.sub(str,i,l))
-      end
+      return next
    end
-   return next
+
+   return make_lexer
 end
 
+rules = {
+   pair("^[%l%u]+", name),
+   pair("^=>", punctuation),
+   pair("^<=>", punctuation),
+   pair("^&", punctuation),
+   pair("^|", punctuation),
+   pair("^~", punctuation),
+   pair("^%(", punctuation),
+   pair("^%)", punctuation),
+   pair("^=>", punctuation)
+}
+
+make_lexer = build_lexer(rules, nil, true)
 
 function lex_string(str)
    local result = {}
