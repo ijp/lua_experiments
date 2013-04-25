@@ -1,19 +1,19 @@
 -- A simple boolean expression parser, written to test out top-down
 -- operator precedence parsing
 
-function pair(a,d)
+local function pair(a,d)
    return {pattern=a, func=d}
 end
 
-function name(str)
+local function name(str)
    return { type="name", value=str }
 end
 
-function punctuation(p)
+local function punctuation(p)
    return { type=p, value=p }
 end
 
-function build_lexer(rules, eof, skip_unhandled)
+local function build_lexer(rules, eof, skip_unhandled)
    local function make_lexer(str)
       local i = 1
       local l = string.len(str)
@@ -46,7 +46,7 @@ function build_lexer(rules, eof, skip_unhandled)
 end
 
 
-function new ()
+local function new ()
    local builder = {
       eofval = nil,
       skip = true,
@@ -68,7 +68,7 @@ function new ()
    return builder
 end
 
-lb = new()
+local lb = new()
 lb:rule("^[%l%u]+", name)
 lb:rule("^=>", punctuation)
 lb:rule("^<=>", punctuation)
@@ -79,9 +79,9 @@ lb:rule("^%(", punctuation)
 lb:rule("^%)", punctuation)
 lb:rule("^=>", punctuation)
 
-make_lexer = lb:build()
+local make_lexer = lb:build()
 
-function lex_string(str)
+local function lex_string(str)
    local result = {}
    local i = 1
    for token in make_lexer(str) do
@@ -91,7 +91,7 @@ function lex_string(str)
    return result
 end
 
-function run_tests()
+local function run_tests()
    local function different(array1, array2)
       for i,v in ipairs(array2) do
          if array1[1].value ~= v then
@@ -109,7 +109,7 @@ function run_tests()
    return true
 end
 
-tests = {}
+local tests = {}
 tests["just a bunch of words"] = {"just","a","bunch","of","words"}
 tests["just a bunch of words & the occasional &"] ={"just","a","bunch","of","words",
                                                     "&", "the", "occasional", "&"}
@@ -117,4 +117,4 @@ tests["lots    of\t\t\n whitespace   \n\n\n\n "] ={"lots","of","whitespace"}
 tests["(&~|))&&~|=>(<=>|&|~=>"]={"(","&","~","|",")",")","&","&","~","|","=>","(",
                                  "<=>","|","&","|","~","=>"}
 
-run_tests(tests)
+return {new=new, make_lexer=make_lexer, run_tests=run_tests}
